@@ -25,11 +25,20 @@ export function allowedOrigins(): string[] {
     .split(",")
     .map((o) => o.trim())
     .filter((o) => /^https?:\/\/[^*\s]+$/.test(o));
-  const dev =
-    process.env["NODE_ENV"] === "production"
-      ? []
-      : ["http://localhost:8080", "http://127.0.0.1:8080"];
-  return [PRODUCTION_ORIGIN, ...extra, ...dev];
+  return [PRODUCTION_ORIGIN, ...extra, ...localhostOrigins()];
+}
+
+/**
+ * Localhost is never allowed implicitly. It requires an explicit opt-in
+ * (`PC_ALLOW_LOCALHOST_ORIGINS=true`) AND a non-production NODE_ENV, so a
+ * missing or mis-set NODE_ENV alone can never open localhost in production.
+ */
+function localhostOrigins(): string[] {
+  const optIn = env("PC_ALLOW_LOCALHOST_ORIGINS").toLowerCase() === "true";
+  if (!optIn) return [];
+  const nodeEnv = (process.env["NODE_ENV"] || "").trim().toLowerCase();
+  if (nodeEnv !== "development" && nodeEnv !== "test") return [];
+  return ["http://localhost:8080", "http://127.0.0.1:8080"];
 }
 
 /** Hostnames Turnstile tokens may be minted on. */
