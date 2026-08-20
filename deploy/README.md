@@ -67,21 +67,22 @@ or action does not match.
 
 ## 4. Netlify
 
-`netlify.toml` builds with the Netlify server preset and publishes
-`dist/client`. Set these environment variables in Netlify (all public):
+`netlify.toml` builds with the Netlify server preset. Alongside the server
+secrets above, set the single public variable:
 
 ```
-VITE_PC_SUPABASE_URL
-VITE_PC_SUPABASE_ANON_KEY
 VITE_PC_TURNSTILE_SITE_KEY
 ```
+
+The browser no longer needs the Supabase URL or anon key: it calls the
+same-origin route `/api/public/check-business-fraud`.
 
 Then add `check.privacoregroup.com` as the custom domain and add that exact
 origin to the function's allow-list (it is already the built-in default).
 
 ## 5. Secret hygiene
 
-No `.env` file is committed. `.env.example` documents the three public
-`VITE_*` values only. Service-role keys, the Turnstile secret and provider API
-keys exist solely as Supabase edge function secrets and are never exposed to
-the browser.
+No `.env` file is committed. `.env.example` documents the single public
+`VITE_*` value only. The service-role key, Turnstile secret and provider API
+keys exist solely as Netlify environment variables, are read inside the server
+handler, and are never exposed to the browser or the GitHub repository.
