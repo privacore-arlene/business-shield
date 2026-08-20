@@ -11,7 +11,7 @@ for Canadian businesses.
   (source: `src/routes/api/public/check-business-fraud.ts`). No Supabase Edge
   Function is used or deployed.
 - **AI:** Google Gemini (OpenAI-compatible endpoint) with your own key
-- **Threat Intel:** Google Safe Browsing, VirusTotal (lookup only)
+- **Threat Intel:** Google Web Risk, VirusTotal (lookup only)
 - **Security:** Cloudflare Turnstile, namespaced rate limiting
 - **Hosting:** Netlify (frontend + server function); Supabase used only for the
   `pc_business_*` rate-limit tables/RPCs
@@ -50,7 +50,7 @@ Public (ships in the browser bundle):
 Server-only (read inside the server function, never sent to the browser):
 `PC_SUPABASE_URL`, `PC_SUPABASE_SERVICE_ROLE_KEY`, `PC_TURNSTILE_SECRET`,
 `PC_AI_API_KEY`, `PC_AI_MODEL` (optional), `PC_AI_BASE_URL` (optional),
-`PC_GOOGLE_SAFE_BROWSING_API_KEY`, `PC_VIRUSTOTAL_API_KEY`, `PC_IP_HASH_KEY`,
+`PC_GOOGLE_WEB_RISK_API_KEY`, `PC_VIRUSTOTAL_API_KEY`, `PC_IP_HASH_KEY`,
 `PC_ALLOWED_ORIGINS` (optional).
 
 > `PC_LOVABLE_API_KEY` is no longer used anywhere. The Turnstile secret lives in

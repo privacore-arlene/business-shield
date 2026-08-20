@@ -76,48 +76,54 @@ export async function checkVirusTotal(
   return { status: "ok", threats };
 }
 
-/** Google Safe Browsing v4 — 5s hard timeout. */
-export async function checkSafeBrowsing(
-  urls: string[],
-  log: LogProvider,
-): Promise<CheckResult> {
-  const apiKey = env("PC_GOOGLE_SAFE_BROWSING_API_KEY");
+/**
+ * Google Web Risk Lookup API (uris.search) — commercial-licensed URL reputation.
+ * Lookup only; one URI per request, 5s hard timeout each.
+ * A response with no `threat` field means "no known threat on record" — never "safe".
+ */
+const WEB_RISK_THREAT_TYPES = [
+  "MALWARE",
+  "SOCIAL_ENGINEERING",
+  "UNWANTED_SOFTWARE",
+  "SOCIAL_ENGINEERING_EXTENDED_COVERAGE",
+] as const;
+
+export async function checkWebRisk(urls: string[], log: LogProvider): Promise<CheckResult> {
+  const apiKey = env("PC_GOOGLE_WEB_RISK_API_KEY");
   if (!apiKey) return { status: "no_key", threats: {} };
   if (urls.length === 0) return { status: "ok", threats: {} };
 
-  try {
-    const res = await fetchWithTimeout(
-      `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          client: { clientId: "privacore-business-fraud-check", clientVersion: "1.0" },
-          threatInfo: {
-            threatTypes: [
-              "MALWARE",
-              "SOCIAL_ENGINEERING",
-              "UNWANTED_SOFTWARE",
-              "POTENTIALLY_HARMFUL_APPLICATION",
-            ],
-            platformTypes: ["ANY_PLATFORM"],
-            threatEntryTypes: ["URL"],
-            threatEntries: urls.map((u) => ({ url: u })),
-          },
-        }),
-      },
-      5000,
-    );
-    if (!res.ok) {
-      log("safe_browsing", res.status);
-      return { status: "error", threats: {} };
-    }
-    const data = await res.json();
-    const threats: Record<string, string> = {};
-    for (const m of data.matches || []) threats[m.threat.url] = m.threatType;
-    return { status: Object.keys(threats).length > 0 ? "threat" : "ok", threats };
-  } catch (e) {
-    log("safe_browsing", isAbort(e) ? "timeout" : "exception");
-    return { status: isAbort(e) ? "timeout" : "error", threats: {} };
-  }
+  const threats: Record<string, string> = {};
+  let hadFailure = false;
+  let hadTimeout = false;
+
+  await Promise.all(
+    urls.map(async (url) => {
+      try {
+        const params = new URLSearchParams({ key: apiKey, uri: url });
+        for (const t of WEB_RISK_THREAT_TYPES) params.append("threatTypes", t);
+        const res = await fetchWithTimeout(
+          `https://webrisk.googleapis.com/v1/uris:search?${params.toString()}`,
+          { headers: { Accept: "application/json" } },
+          5000,
+        );
+        if (!res.ok) {
+          hadFailure = true;
+          log("web_risk", res.status);
+          return;
+        }
+        const data = await res.json();
+        const types: string[] = data?.threat?.threatTypes || [];
+        if (types.length > 0) threats[url] = types.join(", ");
+      } catch (e) {
+        hadFailure = true;
+        if (isAbort(e)) hadTimeout = true;
+        log("web_risk", isAbort(e) ? "timeout" : "exception");
+      }
+    }),
+  );
+
+  if (Object.keys(threats).length > 0) return { status: "threat", threats };
+  if (hadFailure) return { status: hadTimeout ? "timeout" : "error", threats };
+  return { status: "ok", threats };
 }
