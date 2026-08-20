@@ -142,3 +142,58 @@
     color: var(--color-foreground);
   }
 }
+
+/* ---------------------------------------------------------------
+ * PrivaCore Business Fraud Check — brand + risk tokens
+ * ------------------------------------------------------------- */
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-risk-high: var(--risk-high);
+  --color-risk-high-foreground: var(--risk-high-foreground);
+  --color-risk-suspicious: var(--risk-suspicious);
+  --color-risk-suspicious-foreground: var(--risk-suspicious-foreground);
+  --color-risk-none: var(--risk-none);
+  --color-risk-none-foreground: var(--risk-none-foreground);
+  --color-risk-unknown: var(--risk-unknown);
+  --color-risk-unknown-foreground: var(--risk-unknown-foreground);
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --shadow-panel: 0 18px 48px -28px color-mix(in oklab, var(--ink) 65%, transparent);
+}
+
+:root {
+  --radius: 0.75rem;
+  --ink: oklch(0.24 0.032 248);
+  --ink-foreground: oklch(0.98 0.004 250);
+  --brand: oklch(0.55 0.11 195);
+  --brand-foreground: oklch(0.99 0.004 250);
+  --background: oklch(0.985 0.004 250);
+  --foreground: oklch(0.24 0.032 248);
+  --primary: oklch(0.24 0.032 248);
+  --primary-foreground: oklch(0.98 0.004 250);
+  --accent: oklch(0.95 0.02 195);
+  --accent-foreground: oklch(0.24 0.032 248);
+  --ring: oklch(0.55 0.11 195);
+
+  --risk-high: oklch(0.53 0.21 27);
+  --risk-high-foreground: oklch(0.99 0.005 250);
+  --risk-suspicious: oklch(0.73 0.16 62);
+  --risk-suspicious-foreground: oklch(0.22 0.03 60);
+  --risk-none: oklch(0.55 0.09 175);
+  --risk-none-foreground: oklch(0.99 0.005 250);
+  --risk-unknown: oklch(0.5 0.04 252);
+  --risk-unknown-foreground: oklch(0.99 0.005 250);
+}
+
+@layer base {
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+  body {
+    font-family: var(--font-sans);
+  }
+}
