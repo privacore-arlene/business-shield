@@ -21,15 +21,15 @@ editor. It creates PrivaCore-only objects:
 | `pc_purge_business_usage()` | 30-day retention cleanup |
 
 Both tables have RLS enabled with **no policies** and no anon/authenticated
-grants — they are reachable only by the edge function's service role.
+grants — they are reachable only by the Netlify server function's service role.
 
 ## 2. Backend: Netlify server function
 
 The backend runs **inside the app on Netlify** at
 `POST /api/public/check-business-fraud` (source:
-`src/routes/api/public/check-business-fraud.ts`). No Supabase edge function is
-deployed. `deploy/supabase-functions/check-business-fraud/` is kept only as a
-reference implementation and is not used at runtime.
+`src/routes/api/public/check-business-fraud.ts`). No Supabase Edge Function is
+deployed or used; the former reference copy under
+`deploy/supabase-functions/` has been removed.
 
 Supabase is still used, unchanged, for the `pc_business_*` rate-limit RPCs;
 the server function reaches them over PostgREST with the service-role key.
