@@ -23,31 +23,40 @@ editor. It creates PrivaCore-only objects:
 Both tables have RLS enabled with **no policies** and no anon/authenticated
 grants — they are reachable only by the edge function's service role.
 
-## 2. Edge function
+## 2. Backend: Netlify server function
 
-Copy `deploy/supabase-functions/check-business-fraud/` into
-`supabase/functions/check-business-fraud/` in a Supabase CLI workspace and
-deploy:
+The backend runs **inside the app on Netlify** at
+`POST /api/public/check-business-fraud` (source:
+`src/routes/api/public/check-business-fraud.ts`). No Supabase edge function is
+deployed. `deploy/supabase-functions/check-business-fraud/` is kept only as a
+reference implementation and is not used at runtime.
 
-```sh
-supabase functions deploy check-business-fraud --project-ref <ref>
-```
+Supabase is still used, unchanged, for the `pc_business_*` rate-limit RPCs;
+the server function reaches them over PostgREST with the service-role key.
 
-### Secrets (Supabase → Edge Functions → Secrets)
+### Secrets (Netlify → Site configuration → Environment variables)
 
-Every name is `PC_`-prefixed so PrivaCore credentials can be rotated without
-touching Fraud Doctor. Where a `PC_` secret is absent the function falls back
-to the shared platform value, so set the PrivaCore ones explicitly.
+All of these are **server-only** — never prefixed with `VITE_`, never sent to
+the browser, and read at request time inside the handler.
 
 | Secret | Required | Notes |
 | --- | --- | --- |
-| `PC_TURNSTILE_SECRET` | yes | **New** Turnstile secret for `check.privacoregroup.com`. Verification fails closed without it. |
-| `PC_LOVABLE_API_KEY` | yes | AI Gateway key. |
+| `PC_SUPABASE_URL` | yes | Existing Supabase project URL (the one holding `pc_business_*`). |
+| `PC_SUPABASE_SERVICE_ROLE_KEY` | yes | Service-role key for the `pc_business_*` RPCs only. |
+| `PC_TURNSTILE_SECRET` | yes | Turnstile secret for `check.privacoregroup.com`. Verification fails closed without it. |
+| `PC_AI_API_KEY` | yes | Your own Gemini API key. |
+| `PC_AI_MODEL` | optional | Defaults to `gemini-2.5-pro`. |
+| `PC_AI_BASE_URL` | optional | Defaults to Gemini's OpenAI-compatible endpoint. |
 | `PC_GOOGLE_SAFE_BROWSING_API_KEY` | recommended | URL reputation. |
 | `PC_VIRUSTOTAL_API_KEY` | recommended | Lookup only; URLs are never submitted. |
 | `PC_IP_HASH_KEY` | recommended | Long random string; salts the IP HMAC. |
-| `PC_SUPABASE_URL` / `PC_SUPABASE_SERVICE_ROLE_KEY` | optional | Only if pointing at a different project than the function's own. |
-| `PC_EXTRA_ALLOWED_ORIGINS` | optional | Comma-separated exact origins for local dev / Netlify previews. No wildcards. |
+| `PC_ALLOWED_ORIGINS` | optional | Comma-separated exact origins for previews. No wildcards. |
+
+### No longer needed in Supabase
+
+`PC_LOVABLE_API_KEY` is no longer used anywhere. `PC_TURNSTILE_SECRET` must now
+live in **Netlify**; the copy in Supabase edge-function secrets is unused and
+can be removed. The `pc_business_*` tables and RPCs stay exactly as they are.
 
 ## 3. Turnstile
 
