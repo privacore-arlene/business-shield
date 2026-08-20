@@ -1,6 +1,6 @@
 # PrivaCore Business Fraud Check — deployment
 
-Lovable → GitHub (`privacore-arlene/PrivaCore-Business-Fraud-Check`) → Netlify.
+Lovable → GitHub (`privacore-arlene/business-shield`) → Netlify.
 Production domain: **https://check.privacoregroup.com**
 
 Nothing in this repository reads, writes or calls any Fraud Doctor resource.
