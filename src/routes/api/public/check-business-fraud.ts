@@ -31,8 +31,8 @@ import {
   originAllowed,
 } from "@/lib/business-fraud/runtime.server";
 import {
-  checkSafeBrowsing,
   checkVirusTotal,
+  checkWebRisk,
   extractUrls,
 } from "@/lib/business-fraud/threat-intel.server";
 import { verifyTurnstile } from "@/lib/business-fraud/turnstile.server";
@@ -155,7 +155,7 @@ async function handlePost({ request }: { request: Request }): Promise<Response> 
     // 3. URL reputation (server-side, lookup only, in parallel).
     const urls = hasMessage ? extractUrls(message) : [];
     const [sbRes, vtRes] = await Promise.all([
-      checkSafeBrowsing(urls, log),
+      checkWebRisk(urls, log),
       checkVirusTotal(urls, log),
     ]);
     const threats = sbRes.threats;
@@ -172,7 +172,7 @@ async function handlePost({ request }: { request: Request }): Promise<Response> 
       const lines: string[] = [];
       if (Object.keys(threats).length > 0) {
         lines.push(
-          "GOOGLE SAFE BROWSING (authoritative):",
+          "GOOGLE WEB RISK (authoritative):",
           ...Object.entries(threats).map(([u, t]) => `- ${u} -> CONFIRMED THREAT: ${t}`),
         );
       }
@@ -190,12 +190,12 @@ async function handlePost({ request }: { request: Request }): Promise<Response> 
       } else if (anyDown) {
         const downNames: string[] = [];
         if (sbRes.status === "timeout" || sbRes.status === "error") {
-          downNames.push("Google Safe Browsing");
+          downNames.push("Google Web Risk");
         }
         if (vtRes.status === "timeout" || vtRes.status === "error") downNames.push("VirusTotal");
         urlEvidence = `\n\nURL REPUTATION RESULTS: ${downNames.join(" and ")} did not respond in time. Do NOT suggest the link is fine on that basis. Judge the domain, wording and business process instead.`;
       } else {
-        urlEvidence = `\n\nURL REPUTATION RESULTS: no known threat was found for the URL(s) by Google Safe Browsing or VirusTotal. That means only that no known threat is on record — it does NOT prove the site, sender or request is legitimate. Fraudulent business domains are usually new, clean, or hosted on reputable infrastructure. Continue analysing domain spelling, page purpose and the business process.`;
+        urlEvidence = `\n\nURL REPUTATION RESULTS: no known threat was found for the URL(s) by Google Web Risk or VirusTotal. That means only that no known threat is on record — it does NOT prove the site, sender or request is legitimate. Fraudulent business domains are usually new, clean, or hosted on reputable infrastructure. Continue analysing domain spelling, page purpose and the business process.`;
       }
     }
 
@@ -245,7 +245,7 @@ async function handlePost({ request }: { request: Request }): Promise<Response> 
       urls_found: urls,
       confirmed_threats: threats,
       virustotal_threats: vtThreats,
-      sources: { safe_browsing: sbRes.status, virustotal: vtRes.status },
+      sources: { web_risk: sbRes.status, virustotal: vtRes.status },
     };
     assessment['free_checks'] = { remaining: remainingToday, limit: FREE_DAILY_LIMIT };
 
