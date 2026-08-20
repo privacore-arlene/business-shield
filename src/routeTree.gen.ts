@@ -10,33 +10,44 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicCheckBusinessFraudRouteImport } from './routes/api/public/check-business-fraud'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCheckBusinessFraudRoute =
+  ApiPublicCheckBusinessFraudRouteImport.update({
+    id: '/api/public/check-business-fraud',
+    path: '/api/public/check-business-fraud',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/public/check-business-fraud': typeof ApiPublicCheckBusinessFraudRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/public/check-business-fraud': typeof ApiPublicCheckBusinessFraudRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/public/check-business-fraud': typeof ApiPublicCheckBusinessFraudRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/public/check-business-fraud'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/public/check-business-fraud'
+  id: '__root__' | '/' | '/api/public/check-business-fraud'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiPublicCheckBusinessFraudRoute: typeof ApiPublicCheckBusinessFraudRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +59,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/check-business-fraud': {
+      id: '/api/public/check-business-fraud'
+      path: '/api/public/check-business-fraud'
+      fullPath: '/api/public/check-business-fraud'
+      preLoaderRoute: typeof ApiPublicCheckBusinessFraudRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiPublicCheckBusinessFraudRoute: ApiPublicCheckBusinessFraudRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

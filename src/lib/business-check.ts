@@ -1,65 +1,25 @@
 /**
- * Client-side contract for the PrivaCore `check-business-fraud` edge function.
- * Only public VITE_* values are read here; no secret ever reaches the browser.
+ * Client-side contract for the PrivaCore check-business-fraud server function.
+ * The route is same-origin, so the browser sends no credentials at all; the
+ * only public value read here is the Turnstile site key.
  */
+import {
+  CATEGORIES,
+  MAX_IMAGE_BYTES,
+  MAX_TEXT_CHARS,
+  RISK_LEVELS,
+  type Assessment,
+  type RiskLevel,
+} from "./business-fraud/types";
 
-export const RISK_LEVELS = [
-  "HIGH RISK",
-  "SUSPICIOUS",
-  "NO KNOWN THREAT DETECTED",
-  "INSUFFICIENT EVIDENCE",
-] as const;
+export { CATEGORIES, MAX_IMAGE_BYTES, MAX_TEXT_CHARS, RISK_LEVELS };
+export type { Assessment, RiskLevel };
 
-export type RiskLevel = (typeof RISK_LEVELS)[number];
-
-export type Assessment = {
-  risk_level: RiskLevel;
-  fraud_type: string;
-  confidence: "High" | "Medium" | "Low";
-  explanation: string;
-  red_flags: string[];
-  stop: string[];
-  verify: string[];
-  call: string[];
-  business_impact: string;
-  verification_required: boolean;
-  impersonation: boolean;
-  category: string;
-  category_label: string;
-  universal_rule: string;
-  url_check?: {
-    checked: boolean;
-    urls_found: string[];
-    confirmed_threats: Record<string, string>;
-    virustotal_threats: Record<string, string>;
-  };
-  free_checks?: { remaining: number; limit: number };
-};
-
-export const CATEGORIES = [
-  { value: "payment_invoice", label: "Payment or invoice" },
-  { value: "banking_change", label: "Banking information change" },
-  { value: "supplier", label: "Supplier or subcontractor" },
-  { value: "email_message", label: "Email or message" },
-  { value: "website_link", label: "Website or link" },
-  { value: "executive_request", label: "Executive or owner request" },
-  { value: "customer_payment", label: "Customer payment" },
-  { value: "government_grant", label: "Government / grant / rebate" },
-  { value: "other", label: "Something else" },
-] as const;
-
-export const MAX_TEXT_CHARS = 6000;
-export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
-
-export const SUPABASE_URL = (import.meta.env['VITE_PC_SUPABASE_URL'] as string | undefined) ?? "";
-export const SUPABASE_ANON_KEY =
-  (import.meta.env['VITE_PC_SUPABASE_ANON_KEY'] as string | undefined) ?? "";
 export const TURNSTILE_SITE_KEY =
   (import.meta.env['VITE_PC_TURNSTILE_SITE_KEY'] as string | undefined) ?? "";
 
-export const FUNCTION_URL = SUPABASE_URL
-  ? `${SUPABASE_URL.replace(/\/+$/, "")}/functions/v1/check-business-fraud`
-  : "";
+/** Same-origin server route; no key, no cross-origin request. */
+export const FUNCTION_URL = "/api/public/check-business-fraud";
 
 /** Stable, non-identifying local id used only for the daily allowance. */
 export function getDeviceId(): string {
@@ -105,20 +65,11 @@ export async function runCheck(input: {
   category: string;
   turnstileToken: string;
 }): Promise<CheckOutcome> {
-  if (!FUNCTION_URL) {
-    return { kind: "error", message: "The checker isn't configured yet. Please try again later." };
-  }
-
   let res: Response;
   try {
     res = await fetch(FUNCTION_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(SUPABASE_ANON_KEY
-          ? { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
-          : {}),
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         message: input.message,
         image: input.image,
