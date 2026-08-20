@@ -12,4 +12,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Deploy target: Netlify. Inside the Lovable sandbox the build is pinned to
+  // cloudflare-module regardless (preview keeps running on Cloudflare); outside
+  // the sandbox — i.e. Netlify's CI — this hard-pins Nitro to the `netlify`
+  // preset, which emits server functions to `.netlify/functions-internal` and
+  // static assets to `dist/`. See netlify.toml (publish = "dist").
+  nitro: { preset: "netlify" },
 });
