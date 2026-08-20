@@ -47,7 +47,7 @@ the browser, and read at request time inside the handler.
 | `PC_AI_API_KEY` | yes | Your own Gemini API key. |
 | `PC_AI_MODEL` | optional | Defaults to `gemini-2.5-pro`. |
 | `PC_AI_BASE_URL` | optional | Defaults to Gemini's OpenAI-compatible endpoint. |
-| `PC_GOOGLE_SAFE_BROWSING_API_KEY` | recommended | URL reputation. |
+| `PC_GOOGLE_WEB_RISK_API_KEY` | recommended | URL reputation via the Web Risk Lookup API (uris.search), commercially licensed. |
 | `PC_VIRUSTOTAL_API_KEY` | recommended | Lookup only; URLs are never submitted. |
 | `PC_IP_HASH_KEY` | recommended | Long random string; salts the IP HMAC. |
 | `PC_ALLOWED_ORIGINS` | optional | Comma-separated exact origins for previews. No wildcards. |
