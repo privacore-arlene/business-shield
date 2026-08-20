@@ -7,11 +7,14 @@ for Canadian businesses.
 ## Tech Stack
 
 - **Frontend:** TanStack Start v1 (React 19, Vite 7, Tailwind CSS v4)
-- **Backend:** Supabase Edge Function `check-business-fraud`
-- **AI:** Google Gemini via Lovable AI Gateway
-- **Threat Intel:** Google Safe Browsing, VirusTotal
+- **Backend:** Netlify server function at `POST /api/public/check-business-fraud`
+  (source: `src/routes/api/public/check-business-fraud.ts`). No Supabase Edge
+  Function is used or deployed.
+- **AI:** Google Gemini (OpenAI-compatible endpoint) with your own key
+- **Threat Intel:** Google Safe Browsing, VirusTotal (lookup only)
 - **Security:** Cloudflare Turnstile, namespaced rate limiting
-- **Hosting:** Netlify (frontend), Supabase (Edge Functions + DB)
+- **Hosting:** Netlify (frontend + server function); Supabase used only for the
+  `pc_business_*` rate-limit tables/RPCs
 
 ## Project Structure
 
@@ -19,34 +22,39 @@ for Canadian businesses.
 src/                          Frontend application
   routes/index.tsx            Main page (STOP · VERIFY · CALL™ UI)
   components/                 UI components (Turnstile, BusinessFraudCheck)
-  lib/business-check.ts       Client-side helper for the Edge Function
+  lib/business-check.ts       Client-side helper (same-origin fetch)
+  lib/business-fraud/*.server.ts  Server-only modules (never bundled to browser)
+  routes/api/public/check-business-fraud.ts  Server function (the whole backend)
 deploy/
-  supabase-functions/         Edge Function source (deploy to Supabase)
   db/                         SQL migrations (run in Supabase)
   README.md                   Deployment guide
-netlify.toml                  Netlify build + redirect config
+netlify.toml                  Netlify build config (publish = "dist")
 ```
 
 ## Deployment
 
 See [`deploy/README.md`](deploy/README.md) for full instructions covering:
 
-1. Run the SQL migration in Supabase
-2. Deploy the `check-business-fraud` Edge Function
-3. Create Cloudflare Turnstile keys for `check.privacoregroup.com`
-4. Connect Netlify to this GitHub repo and set environment variables
+1. Run the SQL migration in Supabase (creates the `pc_business_*` objects)
+2. Create Cloudflare Turnstile keys for `check.privacoregroup.com`
+3. Connect Netlify to this GitHub repo and set the environment variables below
 
 ## Environment Variables (Netlify)
 
+Public (ships in the browser bundle):
+
 | Variable | Description |
 |----------|-------------|
-| `VITE_PC_SUPABASE_URL` | Supabase project URL |
-| `VITE_PC_SUPABASE_ANON_KEY` | Supabase publishable/anon key |
-| `VITE_PC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key |
+| `VITE_PC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile **site** key |
 
-> **Note:** All secrets (Gemini API key, Safe Browsing key, VirusTotal key,
-> Turnstile secret, Supabase service role) live in the Edge Function
-> environment on Supabase — never in the frontend.
+Server-only (read inside the server function, never sent to the browser):
+`PC_SUPABASE_URL`, `PC_SUPABASE_SERVICE_ROLE_KEY`, `PC_TURNSTILE_SECRET`,
+`PC_AI_API_KEY`, `PC_AI_MODEL` (optional), `PC_AI_BASE_URL` (optional),
+`PC_GOOGLE_SAFE_BROWSING_API_KEY`, `PC_VIRUSTOTAL_API_KEY`, `PC_IP_HASH_KEY`,
+`PC_ALLOWED_ORIGINS` (optional).
+
+> `PC_LOVABLE_API_KEY` is no longer used anywhere. The Turnstile secret lives in
+> Netlify, not Supabase.
 
 ## STOP · VERIFY · CALL™
 
