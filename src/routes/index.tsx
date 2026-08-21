@@ -45,8 +45,8 @@ function Index() {
             src={logo.url}
             alt="The PrivaCore Group — fraud prevention and cybersecurity for small business"
             className="h-16 w-auto sm:h-20"
-            width={1536}
-            height={1024}
+            width={1420}
+            height={220}
           />
           <h1 className="mt-6 text-4xl font-bold sm:text-5xl">Business Fraud Check</h1>
           <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-foreground/80">
