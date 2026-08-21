@@ -56,7 +56,14 @@ const FRIENDLY: Record<string, string> = {
   quota_unavailable: "The service is busy right now. Please try again in a moment.",
   ai_rate_limited: "Too many checks right now. Please wait a moment and try again.",
   ai_credits: "The service is temporarily unavailable. Please try again later.",
-  ai_unavailable: "Could not analyze right now. Please try again shortly.",
+  ai_unavailable: "Could not reach the analysis service. Please try again shortly.",
+  ai_timeout: "That check took too long to analyse. Try again with a shorter excerpt.",
+  ai_not_configured:
+    "The checker isn't finished being set up: the AI key (PC_AI_API_KEY) is missing on the server.",
+  ai_auth: "The AI key on the server was rejected. Please check PC_AI_API_KEY.",
+  ai_request:
+    "The AI service rejected the request (model or endpoint setting). Please check PC_AI_MODEL / PC_AI_BASE_URL.",
+  ai_error: "The analysis service returned an error. Please try again shortly.",
 };
 
 export async function runCheck(input: {

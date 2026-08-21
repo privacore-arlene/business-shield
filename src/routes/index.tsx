@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import logo from "@/assets/privacore-logo.png.asset.json";
 import { BusinessFraudCheck } from "@/components/BusinessFraudCheck";
 
 const TITLE = "PrivaCore Business Fraud Check";
@@ -40,10 +41,14 @@ function Index() {
     <main className="min-h-screen bg-background">
       <header className="bg-ink text-ink-foreground">
         <div className="mx-auto w-full max-w-3xl px-4 py-14 sm:py-20">
-          <p className="text-xs font-semibold tracking-[0.2em] text-brand uppercase">
-            PrivaCore
-          </p>
-          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">Business Fraud Check</h1>
+          <img
+            src={logo.url}
+            alt="The PrivaCore Group — fraud prevention and cybersecurity for small business"
+            className="h-16 w-auto sm:h-20"
+            width={1420}
+            height={220}
+          />
+          <h1 className="mt-6 text-4xl font-bold sm:text-5xl">Business Fraud Check</h1>
           <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-foreground/80">
             Before your business pays an invoice, updates supplier banking details or acts on an
             urgent request, check it here. Built for Canadian businesses and the people who
