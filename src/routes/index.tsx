@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import logo from "@/assets/privacore-logo.png.asset.json";
 import { BusinessFraudCheck } from "@/components/BusinessFraudCheck";
 
 const TITLE = "PrivaCore Business Fraud Check";
