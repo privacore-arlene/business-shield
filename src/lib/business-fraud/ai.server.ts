@@ -9,7 +9,7 @@ import { env, fetchWithTimeout, isAbort, type LogProvider } from "./runtime.serv
 import { RISK_LEVELS } from "./types";
 
 const DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
-const DEFAULT_MODEL = "gemini-2.5-pro";
+const DEFAULT_MODEL = "gemini-2.5-flash";
 
 const TOOL = {
   type: "function",
@@ -110,7 +110,7 @@ export async function assessBusinessFraud(
   const apiKey = env("PC_AI_API_KEY");
   if (!apiKey) {
     log("ai_provider", "no_key");
-    return { ok: false, code: "ai_unavailable", status: 503 };
+    return { ok: false, code: "ai_not_configured", status: 503 };
   }
   const baseUrl = (env("PC_AI_BASE_URL") || DEFAULT_BASE_URL).replace(/\/+$/, "");
   const model = env("PC_AI_MODEL") || DEFAULT_MODEL;
@@ -135,17 +135,24 @@ export async function assessBusinessFraud(
           tool_choice: { type: "function", function: { name: "assess_business_fraud" } },
         }),
       },
-      30000,
+      60000,
     );
   } catch (e) {
-    log("ai_provider", isAbort(e) ? "timeout" : "exception");
-    return { ok: false, code: "ai_unavailable", status: 504 };
+    const abort = isAbort(e);
+    log("ai_provider", abort ? "timeout" : "exception");
+    return { ok: false, code: abort ? "ai_timeout" : "ai_unavailable", status: 504 };
   }
 
   if (!response.ok) {
     log("ai_provider", response.status);
     if (response.status === 429) return { ok: false, code: "ai_rate_limited", status: 429 };
     if (response.status === 402) return { ok: false, code: "ai_credits", status: 402 };
+    if (response.status === 401 || response.status === 403) {
+      return { ok: false, code: "ai_auth", status: 503 };
+    }
+    if (response.status === 404 || response.status === 400) {
+      return { ok: false, code: "ai_request", status: 503 };
+    }
     return { ok: false, code: "ai_error", status: 500 };
   }
 
